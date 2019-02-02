@@ -8,7 +8,7 @@ function AddMovie(props){
   return(
   <form onSubmit={props.add}>
     <input type='text' placeholder='Add movie title here'/>
-    <input type='submit' value='Add'/>
+    <input className='addMovie' type='submit' value='Add'/>
   </form>
   );
 }
@@ -21,7 +21,7 @@ function SearchBar(props){
       <button className='search' id='main' onClick={props.selectList}> Main List</button>
       <form onSubmit={props.submit}>
         <input type="text" placeholder="Search..."/>
-        <input type="submit" value="Go!" />
+        <input className='search' type="submit" value="Go!" />
       </form>
     </span>
   );

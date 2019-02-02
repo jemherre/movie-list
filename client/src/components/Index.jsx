@@ -15,27 +15,31 @@ function AddMovie(props){
 
 function SearchBar(props){
   return(
-    <div>
+    <span>
+      <button className='search' id='watched' onClick={props.selectList}> Watched</button>
+      <button className='search' id='watch' onClick={props.selectList}> To Watch</button>
+      <button className='search' id='main' onClick={props.selectList}> Main List</button>
       <form onSubmit={props.submit}>
         <input type="text" placeholder="Search..."/>
         <input type="submit" value="Go!" />
       </form>
-      <button onClick={props.main}> Main List</button>
-    </div>
+    </span>
   );
 }
 
-//movielist recieves array of movie obj
+//movielist recieves array of movie obj to display on client
 function MovieList(props){
   if(props.movies.length > 0){
     return (
-      <ul onClick={(e)=>{props.onclick(e)}}> {
+      <ul > {
         props.movies.map((movie)=>{
-        return <li key={movie.title}>{movie.title}</li>
+        return <li key={movie.title}>
+        {movie.title} <button className='watch' id={movie.title} onClick={(e)=>{props.onclick(e)}}>watched</button>
+        </li>
       })} </ul>
     );
   } else {
-    return <div> No movie by that name found! </div> ;
+    return <div> No movie exists! </div> ;
   }
 }
 
@@ -47,19 +51,43 @@ class MainList extends React.Component {
     };
   }
 
-  mainList(){
-    this.setState({selectedMV: movies});
+  selectList(e){
+    if(e === 'main') {var list = e; }
+    else{ var list = e.target.id;}
+    if(list === 'main') {
+      this.setState({selectedMV: movies});
+    } else if(list === 'watch' || list === 'watched') {
+      //we would want to query db for specified movie status
+      var result = [];
+      for(var i=0; i< movies.length; i++){
+        if(movies[i].status === list) result.push(movies[i]);
+      }
+      this.setState({selectedMV: result});
+    }
+
   }
 
-  movieCLK(e){
-    // this.setState({selectedMV: 'example'});
+  mvWatched(e){
+    for(var i=0; i< movies.length; i++){
+      if(movies[i].title === e.target.id) movies[i].status = 'watched';
+    }
+    var result = [];
+    for(var i=0; i< movies.length; i++){
+      if(movies[i].status === 'watch') result.push(movies[i]);
+    }
+    this.setState({selectedMV: result});
   }
 
   addMV(e){
     e.preventDefault();
-    console.log(e.target[0].value);
-    movies.push({title: e.target[0].value});
-    this.setState({selectedMV: movies});
+    //check to see if movie exists already
+    movies.push({title: e.target[0].value, status: 'watch'});
+    e.target[0].value = '';
+    var result = [];
+    for(var i=0; i< movies.length; i++){
+      if(movies[i].status === 'watch') result.push(movies[i]);
+    }
+    this.setState({selectedMV: result});
   }
 
   searchCLK(e){
@@ -74,7 +102,7 @@ class MainList extends React.Component {
   }
 
   componentDidMount(){
-    this.mainList();
+    this.selectList('main');
   };
 
   render() {
@@ -82,8 +110,8 @@ class MainList extends React.Component {
     return (
     <div>
       <AddMovie add={this.addMV.bind(this)}/>
-      <SearchBar submit={this.searchCLK.bind(this)} main={this.mainList.bind(this)}/>
-      <MovieList movies={this.state.selectedMV} onclick={this.movieCLK.bind(this)}/>
+      <SearchBar submit={this.searchCLK.bind(this)} selectList={this.selectList.bind(this)}/>
+      <MovieList movies={this.state.selectedMV} onclick={this.mvWatched.bind(this)}/>
     </div>
     );
   }

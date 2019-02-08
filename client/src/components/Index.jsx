@@ -1,9 +1,10 @@
 // render your app here in this component
 var React = require('react');
 var ReactDOM = require('react-dom');
-
+var axios = require('axios');
 var movies = [];
 
+/***** App Components *********/
 function AddMovie(props){
   return(
   <form onSubmit={props.add}>
@@ -27,7 +28,6 @@ function SearchBar(props){
   );
 }
 
-//movielist recieves array of movie obj to display on client
 function MovieList(props){
   if(props.movies.length > 0){
     return (
@@ -35,12 +35,28 @@ function MovieList(props){
         props.movies.map((movie)=>{
         return <li key={movie.title}>
         {movie.title} <button className='watch' id={movie.title} onClick={(e)=>{props.onclick(e)}}>watched</button>
-        </li>
-      })} </ul>
+        </li> 
+        })
+      } </ul>
     );
   } else {
-    return <div> No movie exists! </div> ;
+    return <div> No movie exist! </div> ;
   }
+}
+
+/*************************/
+
+function getQuery(endpoint, opt, state){
+  axios.get(endpoint, {
+    params: opt
+  })
+  .then(function (response) {
+    console.log(response);
+    state.setState({selectedMV: response.data});
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
 }
 
 class MainList extends React.Component {
@@ -52,53 +68,47 @@ class MainList extends React.Component {
   }
 
   selectList(e){
-    if(e === 'main') {var list = e; }
-    else{ var list = e.target.id;}
-    if(list === 'main') {
-      this.setState({selectedMV: movies});
-    } else if(list === 'watch' || list === 'watched') {
-      //we would want to query db for specified movie status
-      var result = [];
-      for(var i=0; i< movies.length; i++){
-        if(movies[i].status === list) result.push(movies[i]);
-      }
-      this.setState({selectedMV: result});
+    if(e === 'main') {
+      var list = e; 
+    } else{ 
+      var list = e.target.id;
     }
-
+    var state = this;
+    getQuery('/movie_list', {type: list}, state);
   }
 
   mvWatched(e){
-    for(var i=0; i< movies.length; i++){
-      if(movies[i].title === e.target.id) movies[i].status = 'watched';
-    }
-    var result = [];
-    for(var i=0; i< movies.length; i++){
-      if(movies[i].status === 'watch') result.push(movies[i]);
-    }
-    this.setState({selectedMV: result});
+    state = this;
+    var name = e.target.id;
+    getQuery('/movie_watched',{ title: name, currStatus:'watch'}, state);
   }
 
   addMV(e){
     e.preventDefault();
-    //check to see if movie exists already
-    movies.push({title: e.target[0].value, status: 'watch'});
+    var state = this;
+    var name = e.target[0].value;
     e.target[0].value = '';
-    var result = [];
-    for(var i=0; i< movies.length; i++){
-      if(movies[i].status === 'watch') result.push(movies[i]);
-    }
-    this.setState({selectedMV: result});
+    
+    axios.post('/movie_add', {
+      title: name, 
+      status: 'watch'
+    })
+    .then(function (response) {
+      console.log('res: ', response);
+      state.setState({selectedMV: response.data});
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+  
   }
 
   searchCLK(e){
     e.preventDefault();
-    var result = [];
-    for(var i=0; i< movies.length; i++){
-      if(movies[i].title === e.target[0].value) result.push(movies[i]);
-    }
+    var state = this;
+    var name = e.target[0].value;
     e.target[0].value = ''; //clear value
-    this.setState({selectedMV: result});
-    //later: we want to go to server and get list with specified name from db
+    getQuery('/movie_search',{ title: name}, state);
   }
 
   componentDidMount(){

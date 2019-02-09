@@ -51,7 +51,6 @@ function getQuery(endpoint, opt, state){
     params: opt
   })
   .then(function (response) {
-    console.log(response);
     state.setState({selectedMV: response.data});
   })
   .catch(function (error) {
@@ -94,7 +93,6 @@ class MainList extends React.Component {
       status: 'watch'
     })
     .then(function (response) {
-      console.log('res: ', response);
       state.setState({selectedMV: response.data});
     })
     .catch(function (error) {

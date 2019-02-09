@@ -1,18 +1,16 @@
 var mysql = require('mysql');
 var db_info = require('../config');
-// var schema = require('../db/schema.sql');
-//import schema
 
-var connection = mysql.createConnection(db_info);
+var db = mysql.createConnection(db_info);
 
-connection.connect(function(err) {
-    if (err) {
-      console.error('error connecting: ' + err.stack);
-      return;
-    }
-    console.log('connection established');
-  });
+//before connecting run schema in mysql shell
 
-  // run/query schema to initialize db
+db.connect(function(err) {
+  if (err) {
+    console.error('error connecting: ' + err.stack);
+    return;
+  }
+  console.log('connection established on port:',db_info.port);
+});
 
-  module.exports = {db: connection};
+  module.exports = {db};
